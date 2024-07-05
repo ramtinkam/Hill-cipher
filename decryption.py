@@ -64,6 +64,7 @@ def encode(keyMatrix , n):
                 output+='_'
             else:
                 output+=chr((temp%27)+65)
+    output = output.strip("_")
     print(output)
     return
 
