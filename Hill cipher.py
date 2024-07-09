@@ -12,41 +12,41 @@ textVar = StringVar()
 outputVar = StringVar()
 
 
-import numpy
-import math
-from numpy import matrix
-from numpy import linalg
+
 
 def modMatInv(A,p):      
   n=len(A)
-  A=matrix(A)
-  adj=numpy.zeros(shape=(n,n))
+
+  adj = [[0 for x in range(n)] for y in range(n)]
   for i in range(0,n):
     for j in range(0,n):
-      adj[i][j]=((-1)**(i+j)*int(round(linalg.det(minor(A,j,i)))))%p
-  return (modInv(int(round(linalg.det(A))),p)*adj)%p
+      adj[i][j]=((-1)**(i+j)*int(determinant(minor(A,j,i))))%p
+
+  for i in range(0,n):
+    for j in range(0,n):
+        adj[i][j]=(modInv(int(determinant(A)),p)*adj[i][j])%p
+  return adj
 
 def modInv(a,p):
   for i in range(1,p):
     if (i*a)%p==1:
       return i
-  raise ValueError(str(a)+" has no inverse mod "+str(p))
 
-def minor(A,i,j):
-  A=numpy.array(A)
-  minor=numpy.zeros(shape=(len(A)-1,len(A)-1))
-  p=0
-  for s in range(0,len(minor)):
-    if p==i:
-      p=p+1
-    q=0
-    for t in range(0,len(minor)):
-      if q==j:
-        q=q+1
-      minor[s][t]=A[p][q]
-      q=q+1
-    p=p+1
-  return minor
+def minor(A, i, j):
+    temp = A[:i] + A[i+1:]
+    return [row[:j] + row[j + 1:] for row in temp]
+
+def determinant(A):
+    n = len(A)
+    if n == 1:
+        return A[0][0]
+    if n == 2:
+        return A[0][0] * A[1][1] - A[1][0] * A[0][1]
+    tempA = [[determinant(minor(A, 0, 0)), determinant(minor(A, 0, n - 1))],
+             [determinant(minor(A, n - 1, 0)), determinant(minor(A, n - 1, n - 1))]]
+    det = tempA[0][0] * tempA[1][1] - tempA[1][0] * tempA[0][1]
+    divideVal = determinant(minor(minor(A, 0, 0), n - 2, n - 2))
+    return det / divideVal
 
 
 
@@ -61,18 +61,20 @@ def encode():
         if (len(key) == (i+1)**2):
             keyValid = TRUE
             n=i+1
-    if (not keyValid):
-        outputEntry.config(state=NORMAL)
-        outputEntry.delete("1.0",END)
-        outputEntry.insert(END,"NO_VALID_KEY")
-        outputEntry.config(state=DISABLED)
-        return
     keyMatrix = [[0 for x in range(n)] for y in range(n)]
     keyIndex=0
     for i in range(n):
         for j in range(n):
             keyMatrix[i][j]=ord(key[keyIndex])-32
             keyIndex +=1
+    if determinant(keyMatrix)==0:
+        keyValid=FALSE
+    if (not keyValid):
+        outputEntry.config(state=NORMAL)
+        outputEntry.delete("1.0",END)
+        outputEntry.insert(END,"NO_VALID_KEY")
+        outputEntry.config(state=DISABLED)
+        return
     padding = len(text)%n
     if (padding):
         text = text+("~"*(n-padding))
@@ -105,18 +107,20 @@ def decode():
         if (len(key) == (i+1)**2):
             keyValid = TRUE
             n=i+1
-    if (not keyValid):
-        outputEntry.config(state=NORMAL)
-        outputEntry.delete("1.0",END)
-        outputEntry.insert(END,"NO_VALID_KEY")
-        outputEntry.config(state=DISABLED)
-        return
     keyMatrix = [[0 for x in range(n)] for y in range(n)]
     keyIndex=0
     for i in range(n):
         for j in range(n):
             keyMatrix[i][j]=ord(key[keyIndex])-32
             keyIndex +=1
+    if determinant(keyMatrix)==0:
+        keyValid=FALSE
+    if (not keyValid):
+        outputEntry.config(state=NORMAL)
+        outputEntry.delete("1.0",END)
+        outputEntry.insert(END,"NO_VALID_KEY")
+        outputEntry.config(state=DISABLED)
+        return
     keyMatrix =modMatInv(keyMatrix,95)
     
     textMatrix = [[0 for x in range(n)] for y in range(int(len(text)/n))]
