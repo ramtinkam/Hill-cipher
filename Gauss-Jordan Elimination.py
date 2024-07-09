@@ -1,5 +1,4 @@
-def determinant(A):
-    n = len(A[0])
+def determinant(A, n):
     mulTot = 1
     det = 1
     for i in range(n):
@@ -8,12 +7,13 @@ def determinant(A):
             if (A[j][i] != 0):
                 nonZeroRow = j
                 break
+        if (nonZeroRow == n):
+            return 0
         if nonZeroRow != i:
             for j in range(0, n):
                 A[nonZeroRow][j], A[i][j] = A[i][j], A[nonZeroRow][j]
-            # if ((nonZeroRow - i) % 2 == 1):
-            #     det *= -1
-            det = det * -1 * ((nonZeroRow - i) & 1)
+            if ((nonZeroRow - i) & 1):
+                det *= -1
         for j in range(i + 1, n):
             x = A[i][i]
             y = A[j][i]
@@ -26,6 +26,10 @@ def determinant(A):
     return det/mulTot
 
 
-A = [[2, 4, -2], [1, 2, 4], [-3, -3, 8]]
-print(determinant(A))
-print(A)
+A = []
+n = int(input())
+for _ in range(n):
+    r = list(map(float, input().split()))
+    A.append(r)
+number = int(determinant(A, n))
+print(number)
